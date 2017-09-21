@@ -1,41 +1,93 @@
 <?php require('./config.php');?>
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+          content="initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <title>聊天室</title>
+    <link rel="stylesheet" href="./css/frozen.css">
     <link rel="stylesheet" href="./css/bootstrap.min.css">
-    <title>Document</title>
-    <script src="./js/jquery.js"></script>
-    <script src="./js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="./css/chat.css">
 </head>
-<body>
-    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="false">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                        &times;
-                    </button>
-                    <h4 class="modal-title" id="myModalLabel">
-                        模态框（Modal）标题
-                    </h4>
-                </div>
-                <div class="modal-body">
-                    在这里添加一些文本
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭
-                    </button>
-                    <button type="button" class="btn btn-primary">
-                        提交更改
-                    </button>
-                </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal -->
+<body ontouchstart="">
+<header class="ui-header ui-header-positive ui-border-b">
+    <h1>聊天室</h1>
+</header>
+
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">
+                    请输入你的名字
+                </h4>
+            </div>
+            <div class="modal-body">
+                <input id="nickname" type="text" class="form-control"/>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="set-name" class="btn btn-primary">
+                    确定
+                </button>
+            </div>
+        </div>
     </div>
+</div>
+
+<div class="ui-container" id="content">
+    <div id="chat-list">
+        <ul class="ui-list-text border-list ui-border-tb" id="chat-list2">
+        </ul>
+    </div>
+</div>
+
+<footer class="footer">
+    <section class="ui-input-wrap ui-border-t">
+        <div class="ui-input ui-border-radius">
+            <input type="text" name="" value="" placeholder="我也说一句..." id="input">
+        </div>
+        <button class="ui-btn" id="submit">发送</button>
+    </section>
+</footer>
+
+<script src="./js/jquery-1.11.3.min.js"></script>
+<script src="./js/zepto.min.js"></script>
+<script src="./js/frozen.js"></script>
+<script src="./js/bootstrap.min.js"></script>
+<script>
+    $(function () {
+        //change the margin of content
+        $("#content").css('margin-bottom', $("footer").height());
+
+        if(!sessionStorage.getItem('username')) {
+            $('#myModal').modal({
+                keyboard: false
+            });
+        }
+
+        $('#set-name').click(function () {
+           let username = $('#nickname').val();
+           if(username) {
+               sessionStorage.setItem('username', username);
+               $('#myModal').modal('hide');
+           }else {
+               alert('请输入你的名字');
+           }
+        });
+
+        let address = 'ws://<?php echo CLIENT_CONNECT_ADDR . ':' . CLIENT_CONNECT_PORT ?>';
+        try {
+            let webSocket = new WebSocket(address);
+        }
+        catch(err) {
+            alert('服务器连接错误，请稍后重试！');
+            return false;
+        }
+    });
+</script>
 </body>
 </html>
 
