@@ -1,3 +1,5 @@
 <?php 
+ 
+ require('./config.php');
 
-echo 'Johnson love';
+ echo CLIENT_CONNECT_ADDR;
