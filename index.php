@@ -73,19 +73,37 @@
            if(username) {
                sessionStorage.setItem('username', username);
                $('#myModal').modal('hide');
+               webSocket.send(JSON.stringify({
+                   'message': username,
+                   'type': 'init'
+               });
            }else {
                alert('请输入你的名字');
            }
         });
 
+        // websocket
         let address = 'ws://<?php echo CLIENT_CONNECT_ADDR . ':' . CLIENT_CONNECT_PORT ?>';
-        try {
-            let webSocket = new WebSocket(address);
-        }
-        catch(err) {
-            alert('服务器连接错误，请稍后重试！');
-            return false;
-        }
+        let webSocket = new WebSocket(address);
+        webSocket.onerror = function (event) {
+            console.log(event);
+            alert('服务器连接错误，请稍后重试');
+        };
+        webSocket.onopen = function (event) {
+            console.log(event);
+            console.log('open');
+        };
+        webSocket.onmessage = function (event) {
+            console.log(event);
+
+        };
+        webSocket.onclose = function (event) {
+            console.log(event);
+            alert('散了吧，服务器都关了');
+        };
+
+
+        
     });
 </script>
 </body>
