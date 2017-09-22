@@ -14,7 +14,7 @@
         public function start()
         {
             $server = new swoole_websocket_server($this->addr, $this->port);
-            $server-set(array(
+            $server->set(array(
                 'daemonize' => 0,
                 'worker_num' => 4,
                 'task_worker_num' => 10,
