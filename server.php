@@ -5,10 +5,10 @@
         private $addr = '';
         private $port = '';
 
-        public function __construct()
+        public function __construct($addr, $port)
         {
-            $this->addr = SERVER_LISTEN_ADDR;
-            $this->port = SERVER_LISTEN_PORT;
+            $this->addr = $addr;
+            $this->port = $port;
         }
 
         public function start()
@@ -27,6 +27,8 @@
             $server->on('task', array($this, 'onTask'));
             $server->on('finish', array($this, 'onFinish'));
             $server->on('close', array($this, 'onClose'));
+
+            $server->start();
         }
 
         public function onOpen($server, $request)
@@ -34,26 +36,30 @@
             print_r($request);
         }
 
-        public function onMessage()
+        public function onMessage($server, $frame)
         {
-
+            print_r($frame);
+            $server->task($frame);
         }
 
-        public function onTask()
+        public function onTask($server, $task_id, $from_id, $frame)
         {
-
+            echo $frame->data . PHP_EOL;
+            $server->finish('OK');
         }
 
-        public function onFinish()
+        public function onFinish($server, $task_id, $data)
         {
-
+            echo $data . PHP_EOL;
         }
 
-        public function onClose()
+        public function onClose($server, $fd)
         {
-
+            echo $fd . 'closed';
         }
 
     }
 
+    $ws = new WebSocketServer(SERVER_LISTEN_ADDR,SERVER_LISTEN_PORT);
+    $ws->start();
 

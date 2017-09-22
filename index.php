@@ -76,7 +76,7 @@
                webSocket.send(JSON.stringify({
                    'message': username,
                    'type': 'init'
-               });
+               }));
            }else {
                alert('请输入你的名字');
            }
