@@ -98,7 +98,7 @@
             unset($this->users[$fd]);
             $this->lock->unlock();
 
-            if( !$username ) {
+            if( $username ) {
                 $response = array(
                     'type' => 1,    // 1代表系统消息，2代表用户聊天
                     'message' => $username . '离开了聊天室'
