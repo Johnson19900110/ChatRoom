@@ -1,6 +1,6 @@
 <?php
-    define('ROOT_PATH', __DIR__ . '\\');
-    require ROOT_PATH . 'config\\config.php';
+    define('ROOT_PATH', __DIR__ . '/');
+    require ROOT_PATH . 'config/config.php';
     require ROOT_PATH . 'functions.php';
 
     class WebSocketServer {
