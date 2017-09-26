@@ -106,7 +106,7 @@
             if (data.type == 1) {
                 $('#chat-list2').append('<li class="ui-border-tb"><span class="username">系统消息:</span><span class="message">' + data.message + '</span></li>');
             } else if (data.type == 2) {
-                $('#chat-list2').append('<li class="ui-border-tb"><span class="username">' + username + ':</span><span class="message">' + data.message + '</span></li>');
+                $('#chat-list2').append('<li class="ui-border-tb"><span class="username">' + data.username + ':</span><span class="message">' + data.message + '</span></li>');
             }
 
         };

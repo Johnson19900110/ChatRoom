@@ -66,6 +66,7 @@
                     $message = $data->message;
                     $response = array(
                         'type' => 2,    // 1代表系统消息，2代表用户聊天
+                        'username' => $this->users[$frame->fd],
                         'message' => $message
                     );
                     break;
