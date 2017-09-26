@@ -4,9 +4,12 @@
     require ROOT_PATH . 'functions.php';
 
     class WebSocketServer {
+        private $server;
         private $addr = '';
         private $port = '';
-        private $users = array();
+        private $users = array();  //保存连接的用户，fd=>nickname的形式保存
+        private $lock;
+
 
         public function __construct($addr, $port)
         {
@@ -16,8 +19,9 @@
 
         public function start()
         {
-            $server = new swoole_websocket_server($this->addr, $this->port);
-            $server->set(array(
+            $this->lock = new swoole_lock(SWOOLE_MUTEX);
+            $this->server = new swoole_websocket_server($this->addr, $this->port);
+            $this->server->set(array(
                 'daemonize' => 0,
                 'worker_num' => 4,
                 'task_worker_num' => 10,
@@ -25,13 +29,13 @@
                 'log_file' => ROOT_PATH . 'storage\\logs\\swoole.log'
             ));
 
-            $server->on('open', array($this, 'onOpen'));
-            $server->on('message', array($this, 'onMessage'));
-            $server->on('task', array($this, 'onTask'));
-            $server->on('finish', array($this, 'onFinish'));
-            $server->on('close', array($this, 'onClose'));
+            $this->server->on('open', array($this, 'onOpen'));
+            $this->server->on('message', array($this, 'onMessage'));
+            $this->server->on('task', array($this, 'onTask'));
+            $this->server->on('finish', array($this, 'onFinish'));
+            $this->server->on('close', array($this, 'onClose'));
 
-            $server->start();
+            $this->server->start();
         }
 
         public function onOpen($server, $request)
@@ -46,35 +50,63 @@
         public function onMessage($server, $frame)
         {
             $data = json_decode($frame->data);
+
             switch ($data->type) {
                 case 'init':
                 case 'INIT':
                     $this->users[$frame->fd] = $data->message;
-                    $frame->response = '欢迎' . $data->message . '加入了直播间';break;
+                    $message = '欢迎' . $data->message . '加入了直播间';
+                    $response = array(
+                        'type' => 1,    // 1代表系统消息，2代表用户聊天
+                        'message' => $message
+                    );
+                    break;
                 case 'chat':
                 case 'CHAT':
-                    $frame->response = $this->users[$frame->fd] . '：' . $data->message;
+                    $message = $data->message;
+                    $response = array(
+                        'type' => 2,    // 1代表系统消息，2代表用户聊天
+                        'message' => $message
+                    );
+                    break;
+                default:
+                    return false;
             }
 
-            $frame->users = $this->users; //此处需要通过$frame传入全局变量，因为在task任务中无法获取全局变量
-
-            $server->task($frame);
+            $this->server->task($response);
         }
 
-        public function onTask($server, $task_id, $from_id, $frame)
+        public function onTask($server, $task_id, $from_id, $message)
         {
-            print_r($frame);
-            $server->finish('OK');
+            foreach ($this->server->connections as $fd) {
+                $this->server->push($fd, json_encode($message));
+            }
+            $server->finish( 'Task' . $task_id . 'Finished' . PHP_EOL);
         }
 
         public function onFinish($server, $task_id, $data)
         {
-            echo $data . PHP_EOL;
+            write_log( $data );
         }
 
         public function onClose($server, $fd)
         {
-            echo $fd . 'closed';
+            $username = $this->users[$fd];
+            // 释放客户端，利用锁进行同步
+            $this->lock->lock();
+            unset($this->server[$fd]);
+            $this->lock->unlock();
+
+            if( !$username ) {
+                $response = array(
+                    'type' => 1,    // 1代表系统消息，2代表用户聊天
+                    'message' => $username . '离开了聊天室'
+                );
+                $this->server->task($response);
+            }
+
+
+            write_log( $fd . ' disconnected');
         }
 
     }
