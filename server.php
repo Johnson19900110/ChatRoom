@@ -55,7 +55,7 @@
                 case 'init':
                 case 'INIT':
                     $this->users[$frame->fd] = $data->message;
-                    $message = '欢迎' . $data->message . '加入了直播间';
+                    $message = '欢迎' . $data->message . '加入了聊天室';
                     $response = array(
                         'type' => 1,    // 1代表系统消息，2代表用户聊天
                         'message' => $message
@@ -94,7 +94,7 @@
             $username = $this->users[$fd];
             // 释放客户端，利用锁进行同步
             $this->lock->lock();
-            unset($this->server[$fd]);
+            unset($this->users[$fd]);
             $this->lock->unlock();
 
             if( !$username ) {

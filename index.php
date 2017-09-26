@@ -62,8 +62,9 @@
         //change the margin of content
         $("#content").css('margin-bottom', $("footer").height());
 
+        let username = '';
         $('#set-name').click(function () {
-           let username = $('#nickname').val();
+           username = $('#nickname').val();
            if(username) {
                sessionStorage.setItem('username', username);
                $('#myModal').modal('hide');
@@ -76,6 +77,12 @@
            }
         });
 
+        function setName() {
+            $('#myModal').modal({
+                keyboard: false
+            });
+        }
+
         // websocket
         let address = 'ws://<?php echo CLIENT_CONNECT_ADDR . ':' . CLIENT_CONNECT_PORT ?>';
         let webSocket = new WebSocket(address);
@@ -84,19 +91,63 @@
         };
         webSocket.onopen = function (event) {
             if(!sessionStorage.getItem('username')) {
-                $('#myModal').modal({
-                    keyboard: false
-                });
+                setName();
+            }else {
+                username = sessionStorage.getItem('username')
+                webSocket.send(JSON.stringify({
+                    'message': username,
+                    'type': 'init'
+                }));
             }
         };
         webSocket.onmessage = function (event) {
             console.log(event);
+            let data = JSON.parse(event.data);
+            if (data.type == 1) {
+                $('#chat-list2').append('<li class="ui-border-tb"><span class="username">系统消息:</span><span class="message">' + data.message + '</span></li>');
+            } else if (data.type == 2) {
+                $('#chat-list2').append('<li class="ui-border-tb"><span class="username">' + username + ':</span><span class="message">' + data.message + '</span></li>');
+            }
 
         };
         webSocket.onclose = function (event) {
             alert('散了吧，服务器都关了');
         };
 
+
+        //触发发送消息事件
+        $("#submit").click(function () {
+            let message = $("#input").val();
+            $("#input").val('');
+            if ( !username ) {
+                setName();
+                return false;
+            }
+            if (message) {
+                webSocket.send(JSON.stringify({
+                    'message': message,
+                    'type': 'chat'
+                }));
+            }
+        });
+        //回车发送消息
+        $("#input").keypress(function () {
+            if (event.keyCode == 13) {
+                let message = $("#input").val();
+                $("#input").val('');
+                console.log(username);
+                if ( !username ) {
+                    setName();
+                    return false;
+                }
+                if (message){
+                    webSocket.send(JSON.stringify({
+                        'message': message,
+                        'type': 'chat'
+                    }));
+                }
+            }
+        });
 
         
     });
