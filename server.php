@@ -6,6 +6,7 @@
     class WebSocketServer {
         private $addr = '';
         private $port = '';
+        private $users = array();
 
         public function __construct($addr, $port)
         {
@@ -35,19 +36,34 @@
 
         public function onOpen($server, $request)
         {
-            print_r($request);
-            echo '-----' . PHP_EOL;
+            $message = array(
+                'remote_addr' => $request->server['remote_addr'],
+                'request_time' => date('Y-m-d H:i:s', $request->server['request_time'])
+            );
+            write_log($message);
         }
 
         public function onMessage($server, $frame)
         {
-            print_r($frame);
+            $data = json_decode($frame->data);
+            switch ($data->type) {
+                case 'init':
+                case 'INIT':
+                    $this->users[$frame->fd] = $data->message;
+                    $frame->response = '欢迎' . $data->message . '加入了直播间';break;
+                case 'chat':
+                case 'CHAT':
+                    $frame->response = $this->users[$frame->fd] . '：' . $data->message;
+            }
+
+            $frame->users = $this->users; //此处需要通过$frame传入全局变量，因为在task任务中无法获取全局变量
+
             $server->task($frame);
         }
 
         public function onTask($server, $task_id, $from_id, $frame)
         {
-            echo $frame->data . PHP_EOL;
+            print_r($frame);
             $server->finish('OK');
         }
 
