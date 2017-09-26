@@ -1,5 +1,7 @@
 <?php
-    require './config.php';
+    define('ROOT_PATH', __DIR__ . '\\');
+    require ROOT_PATH . 'config\\config.php';
+    require ROOT_PATH . 'functions.php';
 
     class WebSocketServer {
         private $addr = '';
@@ -19,7 +21,7 @@
                 'worker_num' => 4,
                 'task_worker_num' => 10,
                 'max_request' => 1000,
-
+                'log_file' => ROOT_PATH . 'storage\\logs\\swoole.log'
             ));
 
             $server->on('open', array($this, 'onOpen'));
@@ -34,6 +36,7 @@
         public function onOpen($server, $request)
         {
             print_r($request);
+            echo '-----' . PHP_EOL;
         }
 
         public function onMessage($server, $frame)

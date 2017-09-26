@@ -62,12 +62,6 @@
         //change the margin of content
         $("#content").css('margin-bottom', $("footer").height());
 
-        if(!sessionStorage.getItem('username')) {
-            $('#myModal').modal({
-                keyboard: false
-            });
-        }
-
         $('#set-name').click(function () {
            let username = $('#nickname').val();
            if(username) {
@@ -86,19 +80,20 @@
         let address = 'ws://<?php echo CLIENT_CONNECT_ADDR . ':' . CLIENT_CONNECT_PORT ?>';
         let webSocket = new WebSocket(address);
         webSocket.onerror = function (event) {
-            console.log(event);
             alert('服务器连接错误，请稍后重试');
         };
         webSocket.onopen = function (event) {
-            console.log(event);
-            console.log('open');
+            if(!sessionStorage.getItem('username')) {
+                $('#myModal').modal({
+                    keyboard: false
+                });
+            }
         };
         webSocket.onmessage = function (event) {
             console.log(event);
 
         };
         webSocket.onclose = function (event) {
-            console.log(event);
             alert('散了吧，服务器都关了');
         };
 
